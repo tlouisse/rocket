@@ -6,7 +6,7 @@ import { adjustPluginOptions } from 'plugins-manager';
 
 /** @type {Partial<import("./packages/cli/types/main").RocketCliOptions>} */
 const config = {
-  presets: [rocketLaunch(), rocketBlog(), rocketSearch()],
+  presets: [rocketLaunch(), rocketBlog()],
   absoluteBaseUrl: absoluteBaseUrlNetlify('http://localhost:8080'),
   setupUnifiedPlugins: [
     adjustPluginOptions('mdjsSetupCode', {

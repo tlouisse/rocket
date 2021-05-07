@@ -63,6 +63,22 @@ export class RocketStart {
       { rollupWrapperFunction: fromRollup },
     );
 
+    // console.log({devServerConfig});
+
+    devServerConfig.plugins = [
+      {
+        name: 'test-plugin',
+        serve: async (context) => {
+          // console.log('serving file', context.path);
+          // console.log(this.eleventy.eleventyTasks)
+          if (this.eleventy.eleventyTasks[context.path]) {
+            const content = await this.eleventy.eleventyTasks[context.path]();
+            return content;
+          }
+        },
+      },
+    ]
+
     this.devServer = await startDevServer({
       config: devServerConfig,
       readCliArgs: true,

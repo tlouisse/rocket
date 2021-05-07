@@ -19,6 +19,9 @@ const { setComputedConfig } = computedConfigPkg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export class RocketEleventy extends Eleventy {
+  // TODO: use a set instead of an object
+  eleventyTasks = {};
+
   /**
    * @param {string} input
    * @param {string} output
@@ -29,10 +32,44 @@ export class RocketEleventy extends Eleventy {
     this.__rocketCli = cli;
   }
 
+  async init() {
+    const res = await super.init();
+    // this.writer.prototype._writeTemplate = writeTemplate;
+    this.writer._writeTemplate = this.writeTemplate.bind(this);
+
+    return res;
+  }
+
+  // This is used to monkeypatch 11ty's internals. Don't render templates, but
+  // instead store a closure that can be used to do it later.
+  writeTemplate(mapEntry) {
+    const { template, _pages: pages } = mapEntry;
+
+    for (const page of pages) {
+      const { url } = page;
+      if (url === false) {
+        continue;
+      }
+      // console.log({ url: page.url });
+
+      let cache = undefined;
+      const build = () => {
+        if (!cache) {
+          cache = template.renderPageEntry(mapEntry, page);
+        }
+        return cache;
+      };
+      this.eleventyTasks[url] = build;
+    }
+
+    return Promise.resolve();
+  }
+
   async write() {
     await this.__rocketCli.mergePresets();
     await super.write();
     await this.__rocketCli.update();
+    // const stuff = await eleventyTasks['_site-dev/index.html']();
   }
 
   // forks it so we can watch for changes but don't include them while building
